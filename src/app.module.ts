@@ -11,6 +11,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { MechanicsModule } from './modules/mechanics/mechanics.module';
 import { UsersModule } from './modules/users/users.module';
 import { VehiclesModule } from './modules/vehicles/vehicles.module';
+import { WorkshopsModule } from './modules/workshops/workshops.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { VehiclesModule } from './modules/vehicles/vehicles.module';
     UsersModule,
     VehiclesModule,
     MechanicsModule,
+    WorkshopsModule,
   ],
   providers: [
     // Los guards globales se ejecutan en este orden: primero autentica (JWT), luego autoriza (roles)
