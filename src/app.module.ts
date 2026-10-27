@@ -8,6 +8,7 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
 import { validateEnv } from './config/env.validation';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { MaintenancesModule } from './modules/maintenances/maintenances.module';
 import { MechanicsModule } from './modules/mechanics/mechanics.module';
 import { UsersModule } from './modules/users/users.module';
@@ -24,6 +25,7 @@ import { WorkshopsModule } from './modules/workshops/workshops.module';
     MechanicsModule,
     WorkshopsModule,
     MaintenancesModule,
+    IntegrationsModule,
   ],
   providers: [
     // Los guards globales se ejecutan en este orden: primero autentica (JWT), luego autoriza (roles)
