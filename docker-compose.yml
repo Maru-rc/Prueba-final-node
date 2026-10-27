@@ -1,0 +1,45 @@
+# Levanta la API y PostgreSQL. Usa las variables del archivo .env (ver .env.example).
+#   docker compose up -d --build
+#   docker compose exec api node dist/database/seeds/seed.js
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: fleetcore-db
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # persistencia de los datos
+    networks:
+      - fleetcore-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build: .
+    container_name: fleetcore-api
+    env_file: .env
+    environment:
+      DB_HOST: db # nombre del servicio dentro de la red interna
+      DB_PORT: 5432
+      PORT: 3000
+    ports:
+      - '${PORT:-3000}:3000'
+    depends_on:
+      db:
+        condition: service_healthy # espera a que PostgreSQL acepte conexiones
+    networks:
+      - fleetcore-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  fleetcore-network:
+    driver: bridge
