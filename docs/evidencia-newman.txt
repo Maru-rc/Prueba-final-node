@@ -1,0 +1,331 @@
+(node:80635) [DEP0176] DeprecationWarning: fs.F_OK is deprecated, use fs.constants.F_OK instead
+(Use `node --trace-deprecation ...` to show where the warning was created)
+newman
+
+FleetCore API - Prueba de desempeño M6.2
+
+❏ 1. Autenticación
+↳ Login ADMIN
+  POST http://localhost:3000/auth/login [200 OK, 666B, 79ms]
+  ✓  Responde 200
+  ✓  Formato uniforme del interceptor
+
+↳ Login TECHNICIAN (Laura)
+  POST http://localhost:3000/auth/login [200 OK, 680B, 60ms]
+  ✓  Responde 200
+
+↳ Login TECHNICIAN (Carlos)
+  POST http://localhost:3000/auth/login [200 OK, 684B, 60ms]
+  ✓  Responde 200
+
+↳ Login con contraseña incorrecta
+  POST http://localhost:3000/auth/login [401 Unauthorized, 376B, 60ms]
+  ✓  Responde 401
+  ✓  Mensaje contiene: Credenciales inválidas
+
+↳ Registro público (crea TECHNICIAN)
+  POST http://localhost:3000/auth/register [201 Created, 496B, 63ms]
+  ✓  Responde 201
+  ✓  El rol es TECHNICIAN
+  ✓  No devuelve la contraseña
+
+↳ Registro público intentando ser ADMIN (rechazado)
+  POST http://localhost:3000/auth/register [400 Bad Request, 432B, 2ms]
+  ✓  Responde 400
+  ✓  role no es un campo permitido
+
+↳ Datos del usuario autenticado (/auth/me)
+  GET http://localhost:3000/auth/me [200 OK, 480B, 2ms]
+  ✓  Responde 200
+
+❏ 2. Seguridad (guards)
+↳ Sin token → 401
+  GET http://localhost:3000/vehicles [401 Unauthorized, 383B, 1ms]
+  ✓  Responde 401
+  ✓  Mensaje contiene: Token de acceso no proporcionado
+
+↳ Token inválido → 401
+  GET http://localhost:3000/vehicles [401 Unauthorized, 382B, 1ms]
+  ✓  Responde 401
+  ✓  Mensaje contiene: inválido
+
+↳ TECHNICIAN crea vehículo → 403
+  POST http://localhost:3000/vehicles [403 Forbidden, 409B, 2ms]
+  ✓  Responde 403
+  ✓  Mensaje contiene: Roles permitidos: ADMIN
+
+↳ TECHNICIAN lista usuarios → 403
+  GET http://localhost:3000/users [403 Forbidden, 406B, 1ms]
+  ✓  Responde 403
+
+❏ 3. Vehículos
+↳ Listar vehículos
+  GET http://localhost:3000/vehicles [200 OK, 1.27kB, 2ms]
+  ✓  Responde 200
+
+↳ Listar vehículos INACTIVE
+  GET http://localhost:3000/vehicles?status=INACTIVE [200 OK, 507B, 2ms]
+  ✓  Responde 200
+
+↳ Registrar vehículo
+  POST http://localhost:3000/vehicles [201 Created, 504B, 4ms]
+  ✓  Responde 201
+  ✓  Estado inicial AVAILABLE
+
+↳ Placa duplicada → 409
+  POST http://localhost:3000/vehicles [409 Conflict, 389B, 2ms]
+  ✓  Responde 409
+  ✓  Mensaje contiene: Ya existe un vehículo con la placa
+
+↳ Validación de datos → 400
+  POST http://localhost:3000/vehicles [400 Bad Request, 563B, 1ms]
+  ✓  Responde 400
+  ✓  Detalla cada error
+
+↳ Consultar por placa
+  GET http://localhost:3000/vehicles/plate/ABC123 [200 OK, 503B, 2ms]
+  ✓  Responde 200
+
+↳ Consultar por id
+  GET http://localhost:3000/vehicles/6 [200 OK, 499B, 2ms]
+  ✓  Responde 200
+
+↳ Vehículo inexistente → 404
+  GET http://localhost:3000/vehicles/9999 [404 Not Found, 387B, 2ms]
+  ✓  Responde 404
+
+↳ Actualizar vehículo
+  PATCH http://localhost:3000/vehicles/6 [200 OK, 512B, 3ms]
+  ✓  Responde 200
+
+↳ Disminuir kilometraje → 400
+  PATCH http://localhost:3000/vehicles/6 [400 Bad Request, 404B, 2ms]
+  ✓  Responde 400
+  ✓  Mensaje contiene: no puede disminuir
+
+↳ Inactivar vehículo (eliminación lógica)
+  PATCH http://localhost:3000/vehicles/6/deactivate [200 OK, 511B, 3ms]
+  ✓  Responde 200
+  ✓  Queda INACTIVE
+
+↳ Reactivar vehículo
+  PATCH http://localhost:3000/vehicles/6/activate [200 OK, 512B, 3ms]
+  ✓  Responde 200
+
+↳ Inactivar vehículo con mantenimiento en curso → 409
+  PATCH http://localhost:3000/vehicles/3/deactivate [409 Conflict, 448B, 2ms]
+  ✓  Responde 409
+
+❏ 4. Mecánicos
+↳ Listar mecánicos
+  GET http://localhost:3000/mechanics [200 OK, 1.54kB, 2ms]
+  ✓  Responde 200
+
+↳ Listar mecánicos inactivos
+  GET http://localhost:3000/mechanics?isActive=false [200 OK, 539B, 2ms]
+  ✓  Responde 200
+
+↳ Registrar mecánico
+  POST http://localhost:3000/mechanics [201 Created, 554B, 3ms]
+  ✓  Responde 201
+
+↳ Consultar mecánico
+  GET http://localhost:3000/mechanics/1 [200 OK, 699B, 2ms]
+  ✓  Responde 200
+
+↳ Perfil del técnico autenticado
+  GET http://localhost:3000/mechanics/me [200 OK, 695B, 3ms]
+  ✓  Responde 200
+
+↳ Actualizar mecánico
+  PATCH http://localhost:3000/mechanics/1 [200 OK, 699B, 4ms]
+  ✓  Responde 200
+
+↳ Inactivar un mecánico ya inactivo → 409
+  PATCH http://localhost:3000/mechanics/3/deactivate [409 Conflict, 404B, 2ms]
+  ✓  Responde 409
+
+❏ 5. Talleres
+↳ Listar talleres activos
+  GET http://localhost:3000/workshops [200 OK, 662B, 1ms]
+  ✓  Responde 200
+  ✓  Solo activos
+
+↳ Registrar taller
+  POST http://localhost:3000/workshops [201 Created, 499B, 3ms]
+  ✓  Responde 201
+
+↳ Consultar taller
+  GET http://localhost:3000/workshops/1 [200 OK, 481B, 1ms]
+  ✓  Responde 200
+
+↳ Inactivar un taller ya inactivo → 409
+  PATCH http://localhost:3000/workshops/2/deactivate [409 Conflict, 401B, 1ms]
+  ✓  Responde 409
+
+❏ 6. Mantenimientos: reglas de negocio
+↳ Crear mantenimiento (Carlos, 7:30-9:00)
+  POST http://localhost:3000/maintenances [201 Created, 1.33kB, 6ms]
+  ✓  Responde 201
+  ✓  Estado inicial SCHEDULED
+
+↳ Mecánico con horario cruzado (8:00, otro vehículo) → 409
+  POST http://localhost:3000/maintenances [409 Conflict, 464B, 4ms]
+  ✓  Responde 409
+  ✓  Mensaje contiene: ya tiene el mantenimiento
+
+↳ Mecánico a la misma hora en otro taller → 409
+  POST http://localhost:3000/maintenances [409 Conflict, 464B, 4ms]
+  ✓  Responde 409
+  ✓  Mensaje contiene: ya tiene el mantenimiento
+
+↳ Mantenimiento que inicia justo al terminar el otro (9:00) → 201
+  POST http://localhost:3000/maintenances [201 Created, 1.33kB, 6ms]
+  ✓  Responde 201
+
+↳ Cancelar el mantenimiento de las 9:00 (SCHEDULED → CANCELLED)
+  PATCH http://localhost:3000/maintenances/7/status [200 OK, 1.32kB, 5ms]
+  ✓  Responde 200
+
+↳ Vehículo INACTIVE → 409
+  POST http://localhost:3000/maintenances [409 Conflict, 425B, 3ms]
+  ✓  Responde 409
+  ✓  Mensaje contiene: inactivo
+
+↳ Vehículo con mantenimiento activo → 409
+  POST http://localhost:3000/maintenances [409 Conflict, 421B, 3ms]
+  ✓  Responde 409
+  ✓  Mensaje contiene: ya tiene un mantenimiento activo
+
+↳ Mecánico inactivo → 409
+  POST http://localhost:3000/maintenances [409 Conflict, 412B, 2ms]
+  ✓  Responde 409
+
+↳ Taller inactivo → 409
+  POST http://localhost:3000/maintenances [409 Conflict, 409B, 3ms]
+  ✓  Responde 409
+
+↳ Vehículo inexistente → 404
+  POST http://localhost:3000/maintenances [404 Not Found, 386B, 2ms]
+  ✓  Responde 404
+
+↳ Kilometraje menor al del vehículo → 400
+  POST http://localhost:3000/maintenances [400 Bad Request, 441B, 3ms]
+  ✓  Responde 400
+  ✓  Mensaje contiene: no puede ser inferior
+
+❏ 7. Mantenimientos: ciclo de vida
+↳ Técnico ve un mantenimiento ajeno → 403
+  GET http://localhost:3000/maintenances/6 [403 Forbidden, 395B, 3ms]
+  ✓  Responde 403
+  ✓  Mensaje contiene: no está asignado a ti
+
+↳ Completar sin pasar por IN_PROGRESS → 409
+  PATCH http://localhost:3000/maintenances/6/status [409 Conflict, 463B, 3ms]
+  ✓  Responde 409
+  ✓  Mensaje contiene: Transición inválida
+
+↳ Técnico inicia su mantenimiento (IN_PROGRESS)
+  PATCH http://localhost:3000/maintenances/6/status [200 OK, 1.36kB, 6ms]
+  ✓  Responde 200
+
+↳ El vehículo quedó IN_MAINTENANCE
+  GET http://localhost:3000/vehicles/6 [200 OK, 517B, 2ms]
+  ✓  Responde 200
+  ✓  Vehículo IN_MAINTENANCE
+
+↳ Completar sin datos de cierre → 400
+  PATCH http://localhost:3000/maintenances/6/status [400 Bad Request, 473B, 3ms]
+  ✓  Responde 400
+  ✓  Mensaje contiene: faltan los datos de cierre
+
+↳ Completar con datos de cierre
+  PATCH http://localhost:3000/maintenances/6/status [200 OK, 1.41kB, 6ms]
+  ✓  Responde 200
+  ✓  Estado COMPLETED
+
+↳ El vehículo volvió a AVAILABLE con el kilometraje final
+  GET http://localhost:3000/vehicles/6 [200 OK, 512B, 2ms]
+  ✓  Responde 200
+  ✓  Vehículo AVAILABLE
+  ✓  Kilometraje actualizado
+
+↳ COMPLETED no puede regresar → 409
+  PATCH http://localhost:3000/maintenances/6/status [409 Conflict, 438B, 2ms]
+  ✓  Responde 409
+  ✓  Mensaje contiene: estado final
+
+↳ CANCELLED no puede pasar a IN_PROGRESS → 409
+  PATCH http://localhost:3000/maintenances/7/status [409 Conflict, 437B, 2ms]
+  ✓  Responde 409
+  ✓  Mensaje contiene: estado final
+
+❏ 8. Mantenimientos: consultas y auditoría
+↳ Todos los mantenimientos
+  GET http://localhost:3000/maintenances [200 OK, 7.77kB, 3ms]
+  ✓  Responde 200
+
+↳ Mantenimientos activos
+  GET http://localhost:3000/maintenances/active [200 OK, 1.37kB, 2ms]
+  ✓  Responde 200
+
+↳ Mantenimientos por vehículo
+  GET http://localhost:3000/maintenances/vehicle/1 [200 OK, 2.14kB, 2ms]
+  ✓  Responde 200
+
+↳ Historial de un vehículo (COMPLETED)
+  GET http://localhost:3000/maintenances/vehicle/1/history [200 OK, 1.13kB, 3ms]
+  ✓  Responde 200
+  ✓  Solo COMPLETED
+
+↳ Mantenimientos de un mecánico
+  GET http://localhost:3000/maintenances/mechanic/1 [200 OK, 4.52kB, 3ms]
+  ✓  Responde 200
+
+↳ Mis mantenimientos (técnico)
+  GET http://localhost:3000/maintenances/me [200 OK, 2.04kB, 3ms]
+  ✓  Responde 200
+
+↳ Auditoría de un mantenimiento
+  GET http://localhost:3000/maintenances/6/audit-logs [200 OK, 1.3kB, 3ms]
+  ✓  Responde 200
+  ✓  Registra creación, inicio y cierre
+
+↳ Auditoría general
+  GET http://localhost:3000/maintenances/audit-logs [200 OK, 6.26kB, 2ms]
+  ✓  Responde 200
+
+❏ 9. Integraciones (x-api-key)
+↳ Sin API key → 401
+  GET http://localhost:3000/integrations/vehicles/ABC123/maintenance-history [401 Unauthorized, 434B, 0µs]
+  ✓  Responde 401
+
+↳ API key incorrecta → 401
+  GET http://localhost:3000/integrations/vehicles/ABC123/maintenance-history [401 Unauthorized, 408B, 1ms]
+  ✓  Responde 401
+  ✓  Mensaje contiene: API key inválida
+
+↳ Historial por placa con API key
+  GET http://localhost:3000/integrations/vehicles/ABC123/maintenance-history [200 OK, 1.13kB, 2ms]
+  ✓  Responde 200
+  ✓  Incluye vehículo y mantenimientos
+
+┌─────────────────────────┬──────────────────┬─────────────────┐
+│                         │         executed │          failed │
+├─────────────────────────┼──────────────────┼─────────────────┤
+│              iterations │                1 │               0 │
+├─────────────────────────┼──────────────────┼─────────────────┤
+│                requests │               66 │               0 │
+├─────────────────────────┼──────────────────┼─────────────────┤
+│            test-scripts │               66 │               0 │
+├─────────────────────────┼──────────────────┼─────────────────┤
+│      prerequest-scripts │                1 │               0 │
+├─────────────────────────┼──────────────────┼─────────────────┤
+│              assertions │               99 │               0 │
+├─────────────────────────┴──────────────────┴─────────────────┤
+│ total run duration: 1140ms                                   │
+├──────────────────────────────────────────────────────────────┤
+│ total data received: 45.59kB (approx)                        │
+├──────────────────────────────────────────────────────────────┤
+│ average response time: 7ms [min: 1ms, max: 79ms, s.d.: 16ms] │
+└──────────────────────────────────────────────────────────────┘
