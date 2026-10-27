@@ -4,9 +4,11 @@ import {
   Entity,
   JoinColumn,
   OneToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Maintenance } from '../../maintenances/entities/maintenance.entity';
 import { User } from '../../users/entities/user.entity';
 
 @Entity('mechanics')
@@ -33,6 +35,9 @@ export class Mechanic {
 
   @Column({ type: 'int', nullable: true })
   userId: number | null;
+
+  @OneToMany(() => Maintenance, (maintenance) => maintenance.mechanic)
+  maintenances: Maintenance[];
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;

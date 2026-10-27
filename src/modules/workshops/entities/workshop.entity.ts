@@ -2,9 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Maintenance } from '../../maintenances/entities/maintenance.entity';
 
 @Entity('workshops')
 export class Workshop {
@@ -19,6 +21,9 @@ export class Workshop {
 
   @Column({ default: true })
   isActive: boolean;
+
+  @OneToMany(() => Maintenance, (maintenance) => maintenance.workshop)
+  maintenances: Maintenance[];
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;

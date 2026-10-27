@@ -5,7 +5,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
+import { Maintenance } from '../maintenances/entities/maintenance.entity';
+import { ACTIVE_MAINTENANCE_STATUSES } from '../maintenances/enums/maintenance-status.enum';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { Vehicle } from './entities/vehicle.entity';
@@ -17,6 +19,8 @@ export class VehiclesService {
   constructor(
     @InjectRepository(Vehicle)
     private readonly vehiclesRepository: Repository<Vehicle>,
+    @InjectRepository(Maintenance)
+    private readonly maintenancesRepository: Repository<Maintenance>,
   ) {}
 
   async create(dto: CreateVehicleDto): Promise<Vehicle> {
@@ -78,9 +82,13 @@ export class VehiclesService {
         `El vehículo ${vehicle.plate} ya está inactivo`,
       );
     }
-    if (vehicle.status === VehicleStatus.IN_MAINTENANCE) {
+    const hasActiveMaintenance = await this.maintenancesRepository.existsBy({
+      vehicleId: id,
+      status: In(ACTIVE_MAINTENANCE_STATUSES),
+    });
+    if (hasActiveMaintenance) {
       throw new ConflictException(
-        `El vehículo ${vehicle.plate} está en mantenimiento y no se puede inactivar`,
+        `El vehículo ${vehicle.plate} tiene un mantenimiento programado o en curso y no se puede inactivar`,
       );
     }
 

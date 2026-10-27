@@ -2,9 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Maintenance } from '../../maintenances/entities/maintenance.entity';
 import { VehicleStatus } from '../enums/vehicle-status.enum';
 
 @Entity('vehicles')
@@ -33,6 +35,9 @@ export class Vehicle {
     default: VehicleStatus.AVAILABLE,
   })
   status: VehicleStatus;
+
+  @OneToMany(() => Maintenance, (maintenance) => maintenance.vehicle)
+  maintenances: Maintenance[];
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
