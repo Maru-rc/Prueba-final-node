@@ -9,6 +9,7 @@ import { validateEnv } from './config/env.validation';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
+import { VehiclesModule } from './modules/vehicles/vehicles.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { UsersModule } from './modules/users/users.module';
     DatabaseModule,
     AuthModule,
     UsersModule,
+    VehiclesModule,
   ],
   providers: [
     // Los guards globales se ejecutan en este orden: primero autentica (JWT), luego autoriza (roles)
