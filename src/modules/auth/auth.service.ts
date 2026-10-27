@@ -22,7 +22,12 @@ export class AuthService {
    * POST /users (por otro ADMIN) o con el seeder.
    */
   register(dto: RegisterDto): Promise<User> {
-    return this.usersService.create({ ...dto, role: Role.TECHNICIAN });
+    return this.usersService.create({
+      name: dto.name,
+      email: dto.email,
+      password: dto.password,
+      role: Role.TECHNICIAN,
+    });
   }
 
   async login({ email, password }: LoginDto) {

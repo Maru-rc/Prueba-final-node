@@ -24,7 +24,9 @@ export class UsersService {
     }
 
     const user = this.usersRepository.create({
-      ...dto,
+      name: dto.name,
+      email: dto.email,
+      role: dto.role,
       password: await hashPassword(dto.password),
     });
     const saved = await this.usersRepository.save(user);
