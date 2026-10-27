@@ -23,6 +23,18 @@ const PG_ERROR = {
   INVALID_TEXT_REPRESENTATION: '22P02',
 } as const;
 
+/** Mensajes que Nest y class-validator generan en inglés, traducidos para responder siempre en español. */
+const FRAMEWORK_MESSAGES: ReadonlyArray<[RegExp, string]> = [
+  [/^property (.+) should not exist$/, '$1 no es un campo permitido'],
+  [/^Cannot (\S+) (.+)$/, 'La ruta $1 $2 no existe'],
+  [/^.*\bJSON\b.*$/, 'El cuerpo de la solicitud no es un JSON válido'],
+];
+
+function translateFrameworkMessage(message: string): string {
+  const match = FRAMEWORK_MESSAGES.find(([pattern]) => pattern.test(message));
+  return match ? message.replace(match[0], match[1]) : message;
+}
+
 /**
  * Filtro global de errores. Toda excepción sale con el mismo formato:
  * { success: false, statusCode, message, path, timestamp }.
@@ -72,14 +84,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
         message: 'Recurso no encontrado',
       };
     }
-    // Errores de Express previos al controlador (ej. JSON mal formado) traen su status 4xx
-    const status = (exception as { status?: unknown })?.status;
-    if (typeof status === 'number' && status >= 400 && status < 500) {
-      return {
-        statusCode: status,
-        message: 'La solicitud no es válida (revisa el formato del cuerpo)',
-      };
-    }
     return {
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       message: 'Error interno del servidor',
@@ -91,7 +95,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const body = exception.getResponse();
 
     if (typeof body === 'string') {
-      return { statusCode, message: body };
+      return { statusCode, message: translateFrameworkMessage(body) };
     }
 
     const { message } = body as { message?: string | string[] };
@@ -100,10 +104,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
       return {
         statusCode,
         message: 'Los datos enviados no son válidos',
-        errors: message,
+        errors: message.map(translateFrameworkMessage),
       };
     }
-    return { statusCode, message: message ?? exception.message };
+    return {
+      statusCode,
+      message: translateFrameworkMessage(message ?? exception.message),
+    };
   }
 
   private resolveDatabaseError(error: QueryFailedError): ErrorDetails {
